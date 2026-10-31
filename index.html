@@ -88,7 +88,29 @@
   .d.up{color:var(--ok)}.d.down{color:var(--danger)}
   footer{margin-top:32px;font-size:12px;color:var(--muted);text-align:center}
 
-  @media(max-width:860px){.kpis{grid-template-columns:1fr}.selector{display:none}.select-mobile{display:block}.chart-box{height:340px}}
+  @media(max-width:860px){.kpis{grid-template-columns:1fr}.selector{display:none}.select-mobile{display:block}.chart-box{height:380px}}
+  @media(max-width:640px){
+    .wrap{padding:0 14px}
+    .hero{padding:28px 0 76px}
+    .hero h1{font-size:23px}.hero p{font-size:13px}
+    .summary{grid-template-columns:1fr 1fr;gap:10px;margin-top:-52px}
+    .summary .sum:first-child{grid-column:1/-1}
+    .sum{padding:12px 14px}.sum .v{font-size:20px}.sum .l{font-size:10px}
+    .section-title{margin:22px 0 8px}
+    .select-mobile{font-weight:700;background:#fff;box-shadow:var(--shadow);border:2px solid var(--blue);color:var(--primary)}
+    .p-head h2{font-size:19px;width:100%}
+    .callout{padding:12px 14px;gap:10px}.callout .ic{font-size:20px}.callout span{font-size:15px}
+    .kpis{gap:10px}
+    .kpi{padding:14px 16px}.kpi .value{font-size:28px}
+    .badge{font-size:14px}
+    .chart-card{padding:14px 10px;border-radius:14px}
+    .chart-head{padding:0 6px}
+    .legend{gap:4px 12px;font-size:11px}
+    .chart-box{height:340px}
+    .timeline{grid-template-columns:1fr;gap:10px}
+    .week{padding:12px}
+    footer{padding:0 8px}
+  }
   @media print{.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}.selector,.select-mobile{display:none}}
 </style>
 </head>
@@ -251,7 +273,7 @@ const riskBands = {
       g.addColorStop(0,'rgba(239,68,68,.22)'); g.addColorStop(1,'rgba(239,68,68,.06)');
       ctx.fillStyle = g; ctx.fillRect(a.left+step*i, a.top, step, a.bottom-a.top);
       ctx.fillStyle = 'rgba(185,28,28,.75)'; ctx.font = '700 11px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('ZONA DE RIESGO', a.left+step*(i+.5), a.top+14);
+      ctx.fillText(chart.width<500?'RIESGO':'ZONA DE RIESGO', a.left+step*(i+.5), a.top+14);
     });
     ctx.restore();
   }
@@ -266,10 +288,10 @@ const eventIcons = {
       const e = rows[i] ? rows[i].eventos : '';
       const list = [e.includes('⚠️') && '⚠️', e.includes('🚚') && '🚚'].filter(Boolean);
       list.forEach((ic,k) => {
-        const x = pt.x + (k - (list.length-1)/2)*34, y = pt.y - 32;
-        ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.shadowColor='rgba(15,23,42,.25)'; ctx.shadowBlur=8; ctx.fill();
+        const R = chart.width<500?11:15, x = pt.x + (k - (list.length-1)/2)*(R*2+4), y = pt.y - (R+17);
+        ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.shadowColor='rgba(15,23,42,.25)'; ctx.shadowBlur=8; ctx.fill();
         ctx.shadowBlur=0; ctx.lineWidth=2; ctx.strokeStyle = ic==='⚠️' ? '#dc2626' : '#2563eb'; ctx.stroke();
-        ctx.font='16px sans-serif'; ctx.fillStyle='#000'; ctx.fillText(ic,x,y+1);
+        ctx.font=(R-1)+'px sans-serif'; ctx.fillStyle='#000'; ctx.fillText(ic,x,y+1);
       });
     });
     ctx.restore();
@@ -277,7 +299,7 @@ const eventIcons = {
 };
 
 let chart;
-function render(idx){
+var render = function(idx){
   const c = casos[idx], rows = c.datos_semanales, L = lucro(c);
   const set = (id,t) => document.getElementById(id).textContent = t;
   set('nombre', c.nombre); set('sku','ID '+c.id); set('talla','Talla crítica: '+c.talla_critica);
@@ -299,7 +321,7 @@ function render(idx){
   document.getElementById('select').value = idx;
   const p = document.getElementById('product'); p.style.animation='none'; void p.offsetWidth; p.style.animation='';
 
-  const maxG = Math.max(...rows.map(w=>w.gmv));
+  const mob = window.innerWidth<640; const maxG = Math.max(...rows.map(w=>w.gmv));
   const data = {
     labels: rows.map(w=>w.semana),
     datasets:[
@@ -307,7 +329,7 @@ function render(idx){
        borderWidth:4, tension:.3, pointRadius:6, pointBorderWidth:3, pointBorderColor:'#2563eb', pointHoverRadius:9, order:1},
       {type:'bar', label:'Stock en piso (unds)', data:rows.map(w=>w.unidades), yAxisID:'y1',
        backgroundColor: rows.map(w=>w.crit?'rgba(239,68,68,.55)':'rgba(148,163,184,.4)'),
-       borderRadius:8, barPercentage:.45, categoryPercentage:1, minBarLength:4, order:2}
+       borderRadius:8, barPercentage:window.innerWidth<640?.6:.45, categoryPercentage:1, minBarLength:4, order:2}
     ]
   };
   if (chart) chart.destroy();
@@ -315,11 +337,11 @@ function render(idx){
     data, plugins:[riskBands, eventIcons],
     options:{
       responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
-      layout:{padding:{top:44}},
+      layout:{padding:{top:mob?38:44}},
       scales:{
-        x:{grid:{display:false}, ticks:{font:{weight:'600'}}},
-        y:{position:'left', beginAtZero:true, suggestedMax:maxG*1.15, title:{display:true,text:'GMV semanal (COP)',font:{weight:'700'}}, grid:{color:'#eef2f7'}, ticks:{callback:v=>'$'+(v/1000).toLocaleString('es-CO')+'k'}},
-        y1:{position:'right', beginAtZero:true, suggestedMax:8, title:{display:true,text:'Unidades en piso',font:{weight:'700'}}, grid:{drawOnChartArea:false}, ticks:{precision:0}}
+        x:{grid:{display:false}, ticks:{font:{weight:'600',size:mob?10:12}, callback(v){const l=this.getLabelForValue(v); return mob?l.replace('Semana ','S'):l;}}},
+        y:{position:'left', beginAtZero:true, suggestedMax:maxG*1.15, title:{display:!mob,text:'GMV semanal (COP)',font:{weight:'700'}}, grid:{color:'#eef2f7'}, ticks:{font:{size:mob?10:12}, callback:v=>'$'+(v/1000).toLocaleString('es-CO')+'k'}},
+        y1:{position:'right', beginAtZero:true, suggestedMax:8, title:{display:!mob,text:'Unidades en piso',font:{weight:'700'}}, grid:{drawOnChartArea:false}, ticks:{precision:0}}
       },
       plugins:{
         legend:{display:false},
@@ -350,6 +372,8 @@ casos.forEach((c,i) => {
   const o = document.createElement('option'); o.value=i; o.textContent = c.nombre; sel.appendChild(o);
 });
 sel.onchange = () => render(+sel.value);
+let cur = 0, rt; const _r = render; render = function(i){ cur = i; _r(i); };
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => _r(cur), 200); });
 render(0);
 </script>
 </body>

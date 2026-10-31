@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impacto Supply y Lucro Cesante | Octubre 2026</title>
+<script src="./chart.umd.min.js"></script>
+<script>
+  if (typeof Chart === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>');
+  }
+</script>
+<style>
+  :root{
+    --navy:#0b1b45;--primary:#1e3a8a;--blue:#2563eb;--blue-soft:#dbeafe;
+    --text:#0f172a;--muted:#64748b;--bg:#f1f5f9;--card:#fff;--border:#e2e8f0;
+    --danger:#dc2626;--danger-dark:#991b1b;--danger-bg:#fef2f2;--danger-border:#fecaca;
+    --ok:#059669;--warn:#d97706;--warn-bg:#fffbeb;--warn-border:#fde68a;
+    --shadow:0 1px 3px rgba(15,23,42,.08),0 8px 24px -8px rgba(15,23,42,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding-bottom:60px}
+  .wrap{max-width:1180px;margin:auto;padding:0 24px}
+
+  /* Hero */
+  .hero{background:linear-gradient(135deg,var(--navy) 0%,#1e3a8a 60%,#3b5bdb 100%);color:#fff;padding:44px 0 90px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-80px;top:-80px;width:340px;height:340px;border-radius:50%;background:rgba(255,255,255,.06)}
+  .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#93c5fd;font-weight:700}
+  .hero h1{font-size:clamp(26px,4vw,38px);font-weight:800;margin:8px 0 10px;max-width:760px;line-height:1.2}
+  .hero p{color:#cbd5e1;max-width:680px;font-size:15px}
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:-56px;position:relative;z-index:2}
+  .sum{background:var(--card);border-radius:14px;padding:16px 20px;box-shadow:var(--shadow)}
+  .sum .l{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+  .sum .v{font-size:26px;font-weight:800;margin-top:2px}
+  .sum .v.red{color:var(--danger)}
+
+  /* Selector */
+  .section-title{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:32px 0 12px}
+  .selector{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .tab{border:2px solid transparent;background:var(--card);padding:14px 16px;border-radius:14px;cursor:pointer;text-align:left;box-shadow:var(--shadow);transition:.18s;font-family:inherit;color:var(--text)}
+  .tab:hover{transform:translateY(-2px)}
+  .tab .n{font-size:11px;font-weight:800;color:var(--blue);letter-spacing:.08em}
+  .tab .t{font-size:13px;font-weight:700;margin:2px 0 6px;line-height:1.3}
+  .tab .f{font-size:11px;color:var(--danger);font-weight:700}
+  .tab.active{border-color:var(--blue);background:var(--blue-soft)}
+  .select-mobile{display:none;width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);font-size:14px;font-family:inherit}
+
+  /* Producto */
+  .product{margin-top:28px;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .p-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px}
+  .p-head h2{font-size:24px;font-weight:800}
+  .chip{font-size:12px;background:#e2e8f0;color:#334155;padding:3px 10px;border-radius:999px;font-weight:600}
+  .callout{display:flex;gap:14px;background:linear-gradient(90deg,var(--warn-bg),#fff);border:1px solid var(--warn-border);border-left:6px solid var(--warn);padding:16px 20px;border-radius:12px;margin:14px 0 22px;box-shadow:var(--shadow)}
+  .callout .ic{font-size:26px;line-height:1}
+  .callout b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--warn);margin-bottom:2px}
+  .callout span{font-size:17px;font-weight:600;color:#1f2937}
+
+  .kpis{display:grid;grid-template-columns:1.3fr 1fr 1.3fr;gap:16px;margin-bottom:22px}
+  .kpi{background:var(--card);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow);border-top:4px solid var(--border)}
+  .kpi.k1{border-top-color:var(--danger);background:linear-gradient(180deg,var(--danger-bg),#fff 70%)}
+  .kpi.k2{border-top-color:var(--warn)}
+  .kpi.k3{border-top-color:var(--primary)}
+  .kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+  .kpi .value{font-size:34px;font-weight:800;margin-top:6px;letter-spacing:-.02em}
+  .kpi .value.red{color:var(--danger)}
+  .kpi .note{font-size:12px;color:var(--muted);margin-top:4px}
+  .badge{display:inline-block;background:var(--danger-bg);color:var(--danger-dark);border:1px solid var(--danger-border);padding:8px 14px;border-radius:10px;font-size:16px;font-weight:800;margin-top:8px;line-height:1.3}
+
+  .chart-card{background:var(--card);border-radius:16px;padding:24px;box-shadow:var(--shadow)}
+  .chart-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .chart-head h3{font-size:16px;font-weight:800}
+  .chart-head p{font-size:12px;color:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);align-items:center}
+  .legend i{display:inline-block;width:14px;height:10px;margin-right:6px;border-radius:2px;vertical-align:middle}
+  .legend i.line{height:3px;width:18px}
+  .chart-box{position:relative;height:430px}
+
+  .timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:22px}
+  .week{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fff;position:relative}
+  .week.crit{background:var(--danger-bg);border-color:var(--danger-border)}
+  .week .w{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .week .g{font-size:20px;font-weight:800;margin:2px 0}
+  .week .s{font-size:12px;font-weight:700;color:var(--ok)}
+  .week.crit .s{color:var(--danger)}
+  .week .e{font-size:12px;color:#334155;margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1}
+  .week .d{font-size:11px;font-weight:700;margin-top:4px}
+  .d.up{color:var(--ok)}.d.down{color:var(--danger)}
+  footer{margin-top:32px;font-size:12px;color:var(--muted);text-align:center}
+
+  @media(max-width:860px){.kpis{grid-template-columns:1fr}.selector{display:none}.select-mobile{display:block}.chart-box{height:340px}}
+  @media print{.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}.selector,.select-mobile{display:none}}
+</style>
+</head>
+<body>
+<div class="hero"><div class="wrap">
+  <div class="eyebrow">Supply · Top Sellers</div>
+  <h1 id="titulo"></h1>
+  <p>Las caídas de venta coinciden con la falta de stock y la pérdida de facing visual, no con una baja demanda.</p>
+</div></div>
+
+<div class="wrap">
+  <div class="summary" id="summary"></div>
+
+  <div class="section-title">Selecciona un caso crítico</div>
+  <div class="selector" id="tabs"></div>
+  <select class="select-mobile" id="select"></select>
+
+  <section class="product" id="product">
+    <div class="p-head"><h2 id="nombre"></h2><span class="chip" id="sku"></span><span class="chip" id="talla"></span></div>
+    <div class="callout"><div class="ic">💡</div><div><b>Diagnóstico para Supply</b><span id="diagnostico"></span></div></div>
+
+    <div class="kpis">
+      <div class="kpi k1"><div class="label">Venta perdida estimada · Lucro cesante</div><div class="value red" id="kpi-lucro"></div><div class="note" id="kpi-lucro-note"></div></div>
+      <div class="kpi k2"><div class="label">Días en riesgo (&lt; 3 unds)</div><div class="value" id="kpi-dias"></div><div class="note" id="kpi-dias-note"></div></div>
+      <div class="kpi k3"><div class="label">Falla del sistema</div><span class="badge" id="kpi-falla"></span></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head">
+        <div><h3>Ventas vs. inventario en piso</h3><p>La franja roja marca las semanas con stock crítico (≤ 2 unds): el “efecto techo” sobre la línea de ventas.</p></div>
+        <div class="legend">
+          <span><i class="line" style="background:#2563eb"></i>GMV semanal (COP)</span>
+          <span><i style="background:rgba(148,163,184,.6)"></i>Stock en piso</span>
+          <span><i style="background:rgba(239,68,68,.35)"></i>Zona de riesgo</span>
+          <span>⚠️ Quiebre</span><span>🚚 Pedido manual</span>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="chart"></canvas></div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </section>
+  <footer>Las unidades de stock del gráfico, cuando el nivel no trae cifra, son valores representativos del nivel.</footer>
+</div>
+
+<script>
+const DATA = {
+  "modulo_supply": {
+    "titulo": "Impacto de Quiebres de Stock en Top Sellers (Octubre 2026)",
+    "casos_criticos": [
+      {
+        "id": "8380664",
+        "nombre": "LS TS RUN SUN PROTECT BLACK",
+        "talla_critica": "40",
+        "falla_sistema": "Stock Mínimo = 1",
+        "lucro_cesante_estimado": 421714,
+        "dias_riesgo": 4,
+        "diagnostico": "El parámetro min=1 asegura el quiebre. Del 24 al 27 de oct se operó con 1-0 unidades. Se recuperó solo por push manual.",
+        "datos_semanales": [
+          { "semana": "Semana 1", "gmv": 966000, "nivel_stock": "Óptimo", "eventos": "" },
+          { "semana": "Semana 2", "gmv": 207000, "nivel_stock": "Crítico (0-2 unds)", "eventos": "⚠️ Oct 26-27: Quiebre total (0 unds)." },
+          { "semana": "Semana 3", "gmv": 750000, "nivel_stock": "Riesgo", "eventos": "" },
+          { "semana": "Semana 4", "gmv": 1002000, "nivel_stock": "Óptimo (6 unds)", "eventos": "🚚 Oct 28: Llegada de 6 unds por pedido manual." }
+        ]
+      },
+      {
+        "id": "8817440",
+        "nombre": "LS TS DRY 100 UV M WHITE",
+        "talla_critica": "L",
+        "falla_sistema": "Ceguera de Aceleración (Efecto Techo)",
+        "lucro_cesante_estimado": 117000,
+        "dias_riesgo": 23,
+        "diagnostico": "El sistema ignoró la tendencia alcista. 23 días sin reposición automática llevaron el stock a 2 unidades, frenando la compra por impulso.",
+        "datos_semanales": [
+          { "semana": "Semana 1", "gmv": 276000, "nivel_stock": "Óptimo (7 unds)", "eventos": "" },
+          { "semana": "Semana 2", "gmv": 345000, "nivel_stock": "Medio", "eventos": "" },
+          { "semana": "Semana 3", "gmv": 483000, "nivel_stock": "Crítico (3 unds)", "eventos": "⚠️ Oct 26: Cae a 3 unds (Pérdida de facing)." },
+          { "semana": "Semana 4", "gmv": 483000, "nivel_stock": "Crítico (2 unds)", "eventos": "🚚 Oct 30: Llegan 4 unds exclusivas por pedido manual." }
+        ]
+      },
+      {
+        "id": "8817439",
+        "nombre": "LS TS DRY 100 UV M BLACK N07A",
+        "talla_critica": "Curva Completa (S, M, L, XL)",
+        "falla_sistema": "Reposición Insuficiente (Goteo)",
+        "lucro_cesante_estimado": 617500,
+        "dias_riesgo": 7,
+        "diagnostico": "Envío de 1 o 2 unidades frente a demandas de 5 diarias. Talla S sin ventas por 5 días; Talla M quebró a 0. Todo el lineal fue rescatado con pedido manual.",
+        "datos_semanales": [
+          { "semana": "Semana 1", "gmv": 1035000, "nivel_stock": "Óptimo", "eventos": "Oct 4: Talla M (12 unds)" },
+          { "semana": "Semana 2", "gmv": 1076400, "nivel_stock": "Medio", "eventos": "" },
+          { "semana": "Semana 3", "gmv": 995000, "nivel_stock": "Crítico (1-2 unds)", "eventos": "⚠️ Oct 22-25: Tallas L y XL operan entre 0 y 2 unds." },
+          { "semana": "Semana 4", "gmv": 438000, "nivel_stock": "Cero", "eventos": "⚠️ Oct 24-28: Cero ventas Talla S. 🚚 Oct 28: Push manual salva el mes." }
+        ]
+      },
+      {
+        "id": "8861547",
+        "nombre": "T-SHIRT DRY 500 M BLACK N07A",
+        "talla_critica": "Todas",
+        "falla_sistema": "Agotamiento Progresivo",
+        "lucro_cesante_estimado": 737000,
+        "dias_riesgo": 12,
+        "diagnostico": "Destrucción progresiva del GMV por operar al límite. Talla 2XL con 6 días en cero. Tallas S y M sin ventas 4 días por falta de masa visual.",
+        "datos_semanales": [
+          { "semana": "Semana 1", "gmv": 670000, "nivel_stock": "Medio", "eventos": "" },
+          { "semana": "Semana 2", "gmv": 670000, "nivel_stock": "Bajo", "eventos": "⚠️ Oct 10-15: Talla 2XL en 0 unidades." },
+          { "semana": "Semana 3", "gmv": 402000, "nivel_stock": "Crítico", "eventos": "⚠️ Oct 14: Talla XL en 0 unidades." },
+          { "semana": "Semana 4", "gmv": 201000, "nivel_stock": "Cero/Crítico", "eventos": "⚠️ Oct 24-28: Tallas S y M caen a 2 unds. Cero ventas. 🚚 Push Manual (Oct 28)." }
+        ]
+      },
+      {
+        "id": "8520964",
+        "nombre": "LS TS RUN SUN PROTECT W WHITE",
+        "talla_critica": "40",
+        "falla_sistema": "Falta de Profundidad",
+        "lucro_cesante_estimado": 276000,
+        "dias_riesgo": 5,
+        "diagnostico": "Tendencia alcista interrumpida. Del 7 al 24 de oct drenó de 6 a 2 unidades sin reposición, anulando el facing y desplomando la venta de la Semana 4.",
+        "datos_semanales": [
+          { "semana": "Semana 1", "gmv": 345000, "nivel_stock": "Óptimo (6 unds)", "eventos": "" },
+          { "semana": "Semana 2", "gmv": 377000, "nivel_stock": "Medio", "eventos": "" },
+          { "semana": "Semana 3", "gmv": 414000, "nivel_stock": "Crítico (2 unds)", "eventos": "⚠️ Oct 24: Cae de 6 a 2 unidades." },
+          { "semana": "Semana 4", "gmv": 138000, "nivel_stock": "Crítico (2 unds)", "eventos": "⚠️ Desplome directo por invisibilidad en el lineal." }
+        ]
+      }
+    ]
+  }
+};
+
+const cop = n => '$' + Math.round(n).toLocaleString('es-CO') + ' COP';
+const isCritical = w => /cr[ií]tico|cero|riesgo/i.test(w.nivel_stock) || w.unidades <= 2;
+
+// Unidades: se extraen de "(N unds)"; si no hay cifra se asigna un valor representativo del nivel.
+function units(s){
+  const m = s.match(/\((\d+)(?:-(\d+))?\s*unds?\)/i);
+  if (m) return m[2] !== undefined ? +m[2] : +m[1];
+  if (/cero/i.test(s)) return 0;
+  if (/cr[ií]tico/i.test(s)) return 2;
+  if (/riesgo|bajo/i.test(s)) return 3;
+  if (/medio/i.test(s)) return 4;
+  if (/[oó]ptimo/i.test(s)) return 7;
+  return 4;
+}
+// Lucro cesante y días en riesgo: valores reales del JSON.
+function lucro(c){ return {v:c.lucro_cesante_estimado||0}; }
+function dias(c){ return c.dias_riesgo||0; }
+
+const casos = DATA.modulo_supply.casos_criticos;
+casos.forEach(c => c.datos_semanales.forEach(w => { w.unidades = units(w.nivel_stock); w.crit = isCritical(w); }));
+
+// Franja roja de fondo en semanas críticas (efecto techo)
+const riskBands = {
+  id:'riskBands',
+  beforeDatasetsDraw(chart){
+    const rows = chart.$rows || []; if (!rows.length) return;
+    const {ctx, chartArea:a} = chart, xs = chart.scales.x, n = rows.length, step = (a.right-a.left)/n;
+    ctx.save();
+    rows.forEach((w,i) => {
+      if (!w.crit) return;
+      const g = ctx.createLinearGradient(0,a.top,0,a.bottom);
+      g.addColorStop(0,'rgba(239,68,68,.22)'); g.addColorStop(1,'rgba(239,68,68,.06)');
+      ctx.fillStyle = g; ctx.fillRect(a.left+step*i, a.top, step, a.bottom-a.top);
+      ctx.fillStyle = 'rgba(185,28,28,.75)'; ctx.font = '700 11px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('ZONA DE RIESGO', a.left+step*(i+.5), a.top+14);
+    });
+    ctx.restore();
+  }
+};
+// Iconos de eventos como insignias circulares
+const eventIcons = {
+  id:'eventIcons',
+  afterDatasetsDraw(chart){
+    const rows = chart.$rows || [], ctx = chart.ctx, pts = chart.getDatasetMeta(0).data;
+    ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle';
+    pts.forEach((pt,i) => {
+      const e = rows[i] ? rows[i].eventos : '';
+      const list = [e.includes('⚠️') && '⚠️', e.includes('🚚') && '🚚'].filter(Boolean);
+      list.forEach((ic,k) => {
+        const x = pt.x + (k - (list.length-1)/2)*34, y = pt.y - 32;
+        ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.shadowColor='rgba(15,23,42,.25)'; ctx.shadowBlur=8; ctx.fill();
+        ctx.shadowBlur=0; ctx.lineWidth=2; ctx.strokeStyle = ic==='⚠️' ? '#dc2626' : '#2563eb'; ctx.stroke();
+        ctx.font='16px sans-serif'; ctx.fillStyle='#000'; ctx.fillText(ic,x,y+1);
+      });
+    });
+    ctx.restore();
+  }
+};
+
+let chart;
+function render(idx){
+  const c = casos[idx], rows = c.datos_semanales, L = lucro(c);
+  const set = (id,t) => document.getElementById(id).textContent = t;
+  set('nombre', c.nombre); set('sku','ID '+c.id); set('talla','Talla crítica: '+c.talla_critica);
+  set('diagnostico', c.diagnostico);
+  set('kpi-lucro','-'+cop(L.v));
+  set('kpi-lucro-note', 'Calculado con promedios diarios reales vs. días de quiebre');
+  set('kpi-dias', dias(c)+' días');
+  set('kpi-dias-note', 'Días operando con stock mínimo o en cero');
+  set('kpi-falla', c.falla_sistema);
+
+  document.getElementById('timeline').innerHTML = rows.map((w,i) => {
+    const prev = i ? rows[i-1].gmv : null;
+    const pct = prev ? ((w.gmv-prev)/prev*100) : null;
+    const d = pct===null ? '' : `<div class="d ${pct>=0?'up':'down'}">${pct>=0?'▲':'▼'} ${Math.abs(pct).toFixed(0)}% vs. semana previa</div>`;
+    return `<div class="week ${w.crit?'crit':''}"><div class="w">${w.semana}</div><div class="g">${cop(w.gmv)}</div><div class="s">${w.crit?'⛔ ':'✔ '}${w.nivel_stock}</div>${d}${w.eventos?`<div class="e">${w.eventos}</div>`:''}</div>`;
+  }).join('');
+
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', i===idx));
+  document.getElementById('select').value = idx;
+  const p = document.getElementById('product'); p.style.animation='none'; void p.offsetWidth; p.style.animation='';
+
+  const maxG = Math.max(...rows.map(w=>w.gmv));
+  const data = {
+    labels: rows.map(w=>w.semana),
+    datasets:[
+      {type:'line', label:'GMV semanal (COP)', data:rows.map(w=>w.gmv), yAxisID:'y', borderColor:'#2563eb', backgroundColor:'#fff',
+       borderWidth:4, tension:.3, pointRadius:6, pointBorderWidth:3, pointBorderColor:'#2563eb', pointHoverRadius:9, order:1},
+      {type:'bar', label:'Stock en piso (unds)', data:rows.map(w=>w.unidades), yAxisID:'y1',
+       backgroundColor: rows.map(w=>w.crit?'rgba(239,68,68,.55)':'rgba(148,163,184,.4)'),
+       borderRadius:8, barPercentage:.45, categoryPercentage:1, minBarLength:4, order:2}
+    ]
+  };
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('chart'), {
+    data, plugins:[riskBands, eventIcons],
+    options:{
+      responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+      layout:{padding:{top:44}},
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{weight:'600'}}},
+        y:{position:'left', beginAtZero:true, suggestedMax:maxG*1.15, title:{display:true,text:'GMV semanal (COP)',font:{weight:'700'}}, grid:{color:'#eef2f7'}, ticks:{callback:v=>'$'+(v/1000).toLocaleString('es-CO')+'k'}},
+        y1:{position:'right', beginAtZero:true, suggestedMax:8, title:{display:true,text:'Unidades en piso',font:{weight:'700'}}, grid:{drawOnChartArea:false}, ticks:{precision:0}}
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#0f172a', padding:12, titleFont:{size:13}, bodyFont:{size:12},
+          callbacks:{
+            label:ctx => ctx.datasetIndex===0 ? ' GMV: '+cop(ctx.parsed.y) : ' Stock: '+ctx.parsed.y+' unds',
+            afterBody:items => { const w = rows[items[0].dataIndex]; return ['Nivel: '+w.nivel_stock].concat(w.eventos?['Evento: '+w.eventos]:[]); }
+          }}
+      }
+    }
+  });
+  chart.$rows = rows; chart.update();
+}
+
+// Resumen global
+const totalLucro = casos.reduce((a,c)=>a+lucro(c).v,0), totalDias = casos.reduce((a,c)=>a+dias(c),0);
+document.getElementById('titulo').textContent = DATA.modulo_supply.titulo;
+document.getElementById('summary').innerHTML =
+  `<div class="sum"><div class="l">Productos críticos</div><div class="v">${casos.length}</div></div>
+   <div class="sum"><div class="l">Lucro cesante total est.</div><div class="v red">-${cop(totalLucro)}</div></div>
+   <div class="sum"><div class="l">Días en riesgo acumulados</div><div class="v">${totalDias}</div></div>`;
+
+const tabs = document.getElementById('tabs'), sel = document.getElementById('select');
+casos.forEach((c,i) => {
+  const b = document.createElement('button'); b.className='tab';
+  b.innerHTML = `<div class="n">#${i+1} · ID ${c.id}</div><div class="t">${c.nombre}</div><div class="f">${c.falla_sistema}</div>`;
+  b.onclick = () => render(i); tabs.appendChild(b);
+  const o = document.createElement('option'); o.value=i; o.textContent = c.nombre; sel.appendChild(o);
+});
+sel.onchange = () => render(+sel.value);
+render(0);
+</script>
+</body>
+</html>
